@@ -1,0 +1,7 @@
+local load main.exe
+
+local dload data\icon1.tim 800C8000
+local dload data\icon2.tim 800C9000
+local dload data\icon3.tim 800CA000
+
+go
