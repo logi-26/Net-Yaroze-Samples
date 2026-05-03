@@ -14,7 +14,7 @@ Instead of using the built-in `FntPrint()` debug font, this project reads charac
 
 ## Screenshot
 
-![Font Screenshot](https://raw.githubusercontent.com/logi-26/Net-Yaroze-Samples/main/samples/font/screenshot.png)
+![Font Screenshot](https://raw.githubusercontent.com/logi-26/Net-Yaroze-Samples/main/samples/font/basic/screenshot.png)
 
 ---
 
