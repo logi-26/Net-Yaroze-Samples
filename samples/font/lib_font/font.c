@@ -650,7 +650,7 @@ void FontFX_Print(int x, int y, char *text, GsOT *ot, int pri)
 
 
 // Print font without any visual effects applied
-void FontFX_PrintWithoutEffects(int screenX, int screenY, char *text, GsOT *ot, int priority)
+void FontFX_PrintWithoutEffects(int screenX, int screenY, char *text, int style, int r, int g, int b, GsOT *ot, int priority)
 {
 	/*****************************************************
 	FontFX_PrintWithoutEffects
@@ -665,6 +665,14 @@ void FontFX_PrintWithoutEffects(int screenX, int screenY, char *text, GsOT *ot, 
 	// If font graphics were not loaded, do nothing
     if (!fontLoaded)
         return;
+
+    // Set the font style
+    fontStyleOffset = style;
+
+    // Set the font colour
+    fontR = (unsigned char)r;
+    fontG = (unsigned char)g;
+    fontB = (unsigned char)b;
 
 	// Get string length
     len  = strlen(text);

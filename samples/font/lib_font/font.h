@@ -46,7 +46,7 @@ void FontFX_SetColour(unsigned char r, unsigned char g, unsigned char b);
 void FontFX_SetStyle(int offset);
 void FontFX_DrawChar(int screenX, int screenY, int c, GsOT *ot, int priority);
 void FontFX_Print(int x, int y, char *text, GsOT *ot, int pri);
-void FontFX_PrintWithoutEffects(int screenX, int screenY, char *text, GsOT *ot, int priority);
+void FontFX_PrintWithoutEffects(int screenX, int screenY, char *text, int style, int r, int g, int b, GsOT *ot, int priority);
 void FontFX_Update(void);
 
 // Font effect functions
