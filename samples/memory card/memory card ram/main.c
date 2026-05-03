@@ -439,7 +439,7 @@ void PrintCardStatus(int card, long status)
     switch (status)
     {
         case 0:
-            FntPrint(fntID, "Card %d: None\n\n", card + 1);
+            FntPrint(fntID, "~c900Card %d: None", card + 1);
             break;
 
         case 1:
@@ -447,21 +447,21 @@ void PrintCardStatus(int card, long status)
 			freeBlocks = CardFreeBlocks(card);
             
 			FntPrint(fntID,
-                     "Card %d: Present (%d free blocks)\n\n",
+                     "~c090Card %d: Present (%d free blocks)",
                      card + 1,
                      freeBlocks);
             break;
 
         case 2:
-            FntPrint(fntID, "Card %d: New\n\n", card + 1);
+            FntPrint(fntID, "~c090Card %d: New", card + 1);
             break;
 
         case 3:
-            FntPrint(fntID, "Card %d: Error\n\n", card + 1);
+            FntPrint(fntID, "~c900Card %d: Error", card + 1);
             break;
 
         case 4:
-            FntPrint(fntID, "Card %d: Unformatted\n\n", card + 1);
+            FntPrint(fntID, "~c990Card %d: Unformatted", card + 1);
             break;
     }
 }
@@ -522,19 +522,24 @@ int main(void)
         GsSetWorkBase((PACKET*)packetArea[buffer]);
         GsClearOt(0,0,&WorldOT[buffer]);
 
-        FntPrint(fntID, "NET YAROZE: MEMORY CARD SAMPLE\n");
-        FntPrint(fntID, "(RAM VERSION)\n\n\n");
+        FntPrint(fntID, "~c999NET YAROZE: MEMORY CARD SAMPLE\n\n");
+        FntPrint(fntID, "~c999(RAM VERSION)");
+		FntPrint(fntID, "\n\n\n\n");
 
-        FntPrint(fntID, "FRAME=%d\n\n\n", frame);
+        FntPrint(fntID, "~c990FRAME=%d", frame);
+		FntPrint(fntID, "\n\n\n\n");
 
 		// Display the memory card status
         PrintCardStatus(0, cardStatus1);
+		FntPrint(fntID, "\n\n");
         PrintCardStatus(1, cardStatus2);
+		FntPrint(fntID, "\n\n\n\n\n");
 
 		// If memory card 2 is present and has free space
         if (cardStatus2 == 1)
         {
-			FntPrint(fntID, "\nX Save   O Load\n\n\n");
+			FntPrint(fntID, "~c009X Save   O Load");
+			FntPrint(fntID, "\n\n\n\n\n");
 			
 			// Save the current frame number to the memory card
             if ((pad & PADcross) && !(oldPad & PADcross))
@@ -545,7 +550,7 @@ int main(void)
                 loaded = CardRead(1);
         }
 
-        FntPrint(fntID, "LOADED VALUE: %d\n", loaded);
+        FntPrint(fntID, "~c099LOADED VALUE: %d", loaded);
 
         oldPad = pad;
 
