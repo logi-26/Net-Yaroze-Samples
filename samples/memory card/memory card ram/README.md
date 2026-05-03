@@ -15,7 +15,7 @@ This sample demonstrates creating a save game file on the **Net Yaroze / PlaySta
 
 ## How It Works
 
-The project loads a 3 16x16 TIM files through the `AUTO` file:
+The project loads 3 16x16 TIM files through the `AUTO` file:
 
 ```txt
 local dload data\icon1.tim 800C8000
