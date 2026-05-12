@@ -1,0 +1,3 @@
+local load main.exe
+local dload data\8dotfont.tim 80108000
+go
