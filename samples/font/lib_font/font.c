@@ -39,6 +39,9 @@ static unsigned char fontR = 255;
 static unsigned char fontG = 255;
 static unsigned char fontB = 255;
 
+// Font alpha value (0 = semi-transparent, 1 = opaque)
+static int fontAlpha = 1;
+
 // Offset for switching the font style
 static int fontStyleOffset = 0;
 
@@ -131,6 +134,13 @@ void FontFX_Update(void)
     shakeTimer++;
 	scrollTimer++;
 	fadeTimer++;
+}
+
+
+// Set the alpha value
+void FontFX_SetAlpha(int alfa)
+{
+    fontAlpha = alfa;
 }
 
 
@@ -440,7 +450,7 @@ void FontFX_DrawChar(int screenX, int screenY, int c, GsOT *ot, int priority)
 		value 0  = draw pixel (character)
 		non-zero = background (skip)
 	*****************************************************/
-	
+
     int charIndex, col, row;
     int px, py;
     int byteOffset;
@@ -455,35 +465,46 @@ void FontFX_DrawChar(int screenX, int screenY, int c, GsOT *ot, int priority)
     col       = charIndex % FONT_COLS;
     row       = charIndex / FONT_COLS;
 
-    box.attribute = 0;
-    box.w         = (unsigned short)fontScale;
-    box.h         = (unsigned short)fontScale;
+    box.w = (unsigned short)fontScale;
+    box.h = (unsigned short)fontScale;
 	
+    // Set font semi-transparent if the alpha value is 0
+	if (fontAlpha == 0)
+		box.attribute = (1 << 30);
+	else
+		box.attribute = 0;      
+
 	/*****************************************************
 	OUTLINE PASS
-    Draw character in outline colour at 8 surrounding offsets
+	Draw character in outline colour at 8 surrounding offsets.
+	Offset is always 1 pixel regardless of fontScale to keep
+	the primitive count manageable and the outline looking clean.
 	*****************************************************/
-
-    // Drawn behind, so higher priority number
 	if (gFontFX.flags & FONT_FX_OUTLINE)
 	{
-		static int ox[8] = { -1,  0,  1, -1, 1, -1, 0, 1 };
-		static int oy[8] = { -1, -1, -1,  0, 0,  1, 1, 1 };
+		unsigned char saveR = fontR;
+		unsigned char saveG = fontG;
+		unsigned char saveB = fontB;
 
-		int d;
+		static int ox[4] = {  0,  0, -1, 1 };
+		static int oy[4] = { -1,  1,  0, 0 };
+		int d, spanStart, spanLen;
 
 		box.r = (unsigned char)gFontFX.outlineR;
 		box.g = (unsigned char)gFontFX.outlineG;
 		box.b = (unsigned char)gFontFX.outlineB;
+		box.h = (unsigned short)fontScale;
 
-		for (d = 0; d < 8; d++)
+		for (d = 0; d < 4; d++)
 		{
 			for (py = 0; py < FONT_CHAR_H; py++)
 			{
+				spanStart = -1;
+				spanLen   =  0;
+
 				for (px = 0; px < FONT_CHAR_W; px++)
 				{
-					byteOffset = (row * FONT_CHAR_H + py) * 128
-							   + (col * FONT_CHAR_W + px) / 2;
+					byteOffset = (row * FONT_CHAR_H + py) * 128 + (col * FONT_CHAR_W + px) / 2;
 
 					byteVal = fontPixels[byteOffset];
 
@@ -494,27 +515,58 @@ void FontFX_DrawChar(int screenX, int screenY, int c, GsOT *ot, int priority)
 
 					if (pixel == 0)
 					{
-						box.x = (short)(screenX + px * fontScale + ox[d] * fontScale);
-						box.y = (short)(screenY + py * fontScale + oy[d] * fontScale);
-						GsSortBoxFill(&box, ot, priority + 1);  /* +1 = behind fill */
+						// Start or extend a span
+						if (spanStart < 0)
+							spanStart = px;
+
+						spanLen++;
 					}
+					else
+					{
+						// End of span, flush it
+						if (spanStart >= 0)
+						{
+							box.x = (short)(screenX + spanStart * fontScale + ox[d]);
+							box.y = (short)(screenY + py        * fontScale + oy[d]);
+							box.w = (unsigned short)(spanLen * fontScale);
+							GsSortBoxFill(&box, ot, priority + 1);
+							spanStart = -1;
+							spanLen   =  0;
+						}
+					}
+				}
+
+				// Flush any span still open at end of the row
+				if (spanStart >= 0)
+				{
+					box.x = (short)(screenX + spanStart * fontScale + ox[d]);
+					box.y = (short)(screenY + py        * fontScale + oy[d]);
+					box.w = (unsigned short)(spanLen * fontScale);
+					GsSortBoxFill(&box, ot, priority + 1);
 				}
 			}
 		}
+
+		fontR = saveR;
+		fontG = saveG;
+		fontB = saveB;
 	}
-	
+
 	/*****************************************************
 	FILL PASS
-    Draw character in outline colour at 8 surrounding offsets
+	Draw character in current font colour.
+	Drawn in front, so lower priority number.
 	*****************************************************/
-	
-	// Drawn in front, so lower priority number
 	box.r = fontR;
 	box.g = fontG;
 	box.b = fontB;
+	box.h = (unsigned short)fontScale;
 
 	for (py = 0; py < FONT_CHAR_H; py++)
 	{
+		int spanStart = -1;
+		int spanLen   =  0;
+
 		for (px = 0; px < FONT_CHAR_W; px++)
 		{
 			byteOffset = (row * FONT_CHAR_H + py) * 128
@@ -529,10 +581,30 @@ void FontFX_DrawChar(int screenX, int screenY, int c, GsOT *ot, int priority)
 
 			if (pixel == 0)
 			{
-				box.x = (short)(screenX + px * fontScale);
-				box.y = (short)(screenY + py * fontScale);
-				GsSortBoxFill(&box, ot, priority);
+				if (spanStart < 0)
+					spanStart = px;
+				spanLen++;
 			}
+			else
+			{
+				if (spanStart >= 0)
+				{
+					box.x = (short)(screenX + spanStart * fontScale);
+					box.y = (short)(screenY + py        * fontScale);
+					box.w = (unsigned short)(spanLen * fontScale);
+					GsSortBoxFill(&box, ot, priority);
+					spanStart = -1;
+					spanLen   =  0;
+				}
+			}
+		}
+
+		if (spanStart >= 0)
+		{
+			box.x = (short)(screenX + spanStart * fontScale);
+			box.y = (short)(screenY + py        * fontScale);
+			box.w = (unsigned short)(spanLen * fontScale);
+			GsSortBoxFill(&box, ot, priority);
 		}
 	}
 }
@@ -639,7 +711,7 @@ void FontFX_Print(int x, int y, char *text, GsOT *ot, int pri)
 			fontG = (fontG * v) / 255;
 			fontB = (fontB * v) / 255;
 		}
-
+	
         // Draw char
         FontFX_DrawChar(xx, yy, c, ot, pri);
 
@@ -803,12 +875,12 @@ void FontFX_PrintFade(int x, int y, char *text, int style, int r, int g, int b, 
 
 
 // Wrapper function for the outline font effect
-void FontFX_PrintOutline(int x, int y, char *text, int style, int r, int g, int b, int or, int og, int ob, GsOT *ot, int pri)
+void FontFX_PrintOutline(int x, int y, char *text, int style, int r, int g, int b, int ro, int go, int bo, GsOT *ot, int pri)
 {
     FontFX_FontBegin();
     FontFX_SetColour(r, g, b);
     FontFX_SetStyle(style);
-    FontFX_SetOutline(or, og, ob);
+    FontFX_SetOutline(ro, go, bo);
     FontFX_Print(x, y, text, ot, pri);
     FontFX_FontEnd();
 }

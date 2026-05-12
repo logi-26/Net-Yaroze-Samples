@@ -59,6 +59,7 @@ void FontFX_SetTypewriter(int speed);
 void FontFX_SetScroll(int width, int speed);
 void FontFX_SetFade(int start, int end, int speed, int loop);
 void FontFX_SetOutline(int r, int g, int b);
+void FontFX_SetAlpha(int alfa);
 
 // Wrapper functions
 void FontFX_PrintPulse(int x, int y, char *text, int style, int r, int g, int b, int min, int max, int speed, GsOT *ot, int pri);
@@ -69,7 +70,7 @@ void FontFX_PrintRainbow(int x, int y, char *text, int style, int speed, GsOT *o
 void FontFX_PrintTypewriter(int x, int y, char *text, int style, int r, int g, int b, int speed, GsOT *ot, int pri);
 void FontFX_PrintScroll(int x, int y, char *text, int style, int r, int g, int b, int width, int speed, GsOT *ot, int pri);
 void FontFX_PrintFade(int x, int y, char *text, int style, int r, int g, int b, int start, int end, int speed, int loop, GsOT *ot, int pri);
-void FontFX_PrintOutline(int x, int y, char *text, int style, int r, int g, int b, int or, int og, int ob, GsOT *ot, int pri);
+void FontFX_PrintOutline(int x, int y, char *text, int style, int r, int g, int b, int ro, int go, int bo, GsOT *ot, int pri);
 /*****************************************************/
 
 #endif
